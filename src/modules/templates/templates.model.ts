@@ -5,8 +5,8 @@ export class Template {
         public description: string,
         // public categoryId: string,
         public previewImage: string,
-        public code: {html: string, css: string, js: string}
-        // public createdAt: Date,
-        // public updatedAt: Date
+        public code: {html: string, css: string, js: string},
+        public createdAt: Date,
+        public updatedAt: Date
     ) {}
 }

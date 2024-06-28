@@ -8,7 +8,9 @@ export class UsersService {
 
     addUser( username: string, name: string, email: string, password: string ) {
         const id = uuidv4();
-        const newUser = new User(id, username, name, email, password);
+        const createdAt = new Date();
+        const updatedAt = new Date();
+        const newUser = new User(id, username, name, email, password, createdAt, updatedAt);
         this.users.push(newUser);
         return id;
     }
@@ -21,16 +23,9 @@ export class UsersService {
         return this.getUserById(id)[0];
     }
 
-    updateUser(
-        id: string,
-        username: string,
-        name: string,
-        email: string,
-        password: string
-    ) {
+    updateUser( id: string, username: string, name: string, email: string, password: string ) {
         const [targetUser, index] = this.getUserById(id);
-        const par = { ... targetUser, username, name, email, password};
-        const updatedUser = new User(id, par.username, par.name, par.email, par.password);
+        const updatedUser = new User(id, username, name, email, password, targetUser.createdAt, new Date());
         this.users[index] = updatedUser;
     }
 

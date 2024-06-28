@@ -11,7 +11,9 @@ export class TemplatesService {
         code: {html: string, css: string, js: string}
     ): string {
         const id = uuidv4();
-        const newTemplate = new Template(id, name, description, previewImage, code);
+        const createdAt = new Date();
+        const updatedAt = new Date();
+        const newTemplate = new Template(id, name, description, previewImage, code, createdAt, updatedAt);
         this.templates.push(newTemplate);
         return id;
     }
@@ -29,7 +31,7 @@ export class TemplatesService {
         code: {html: string, css: string, js: string}
     ): void {
         const [targetTemplate, index] = this.getTemplateById(id);
-        const updatedTemplate = new Template(id, name, description, previewImage, code);
+        const updatedTemplate = new Template(id, name, description, previewImage, code, targetTemplate.createdAt, new Date());
         this.templates[index] = updatedTemplate;
     }
 

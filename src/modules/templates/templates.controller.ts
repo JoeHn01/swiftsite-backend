@@ -13,9 +13,7 @@ export class TemplatesController {
         @Body('code') code: {html: string, css: string, js: string},
     ) {
         const templateId = this.templatesService.addTemplate(name, description, previewImage, code);
-        return {
-            id: templateId,
-        };
+        return { id: templateId };
     }
 
     @Get()

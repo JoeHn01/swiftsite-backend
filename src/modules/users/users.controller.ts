@@ -13,9 +13,7 @@ export class UsersController {
         @Body('password') password: string,
     ) {
         const userId = this.userService.addUser( username, name, email, password );
-        return {
-            id: userId,
-        }
+        return { id: userId }
     }
 
     @Get()

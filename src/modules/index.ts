@@ -14,7 +14,8 @@ function loadModule(folderName: string) {
   try {
     const module = require(modulePath);
     const importedModule = module.default || module[`${folderName.charAt(0).toUpperCase() + folderName.slice(1)}Module`];
-    console.log(`Successfully loaded module: ${modulePath}`);
+    const fileName = path.basename(modulePath);
+    console.log(`Successfully loaded module: ${fileName}`);
     if (typeof importedModule === 'function') {
       return { module: importedModule };
     } else {

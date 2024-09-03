@@ -1,47 +1,51 @@
-import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
-import { Template } from './templates.model';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Template } from './templates.schema';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class TemplatesService {
-    private templates: Template[] = [];
+  constructor(@InjectModel(Template.name) private readonly templateModel: Model<Template>) {}
 
-    addTemplate(
-        name: string, description: string, previewImage: string,
-        code: {html: string, css: string, js: string}
-    ): string {
-        const id = uuidv4();
-        const createdAt = new Date();
-        const updatedAt = new Date();
-        const newTemplate = new Template(id, name, description, previewImage, code, createdAt, updatedAt);
-        this.templates.push(newTemplate);
-        return id;
-    }
+  async addTemplate(
+    name: string, description: string, previewImage: string, code: { html: string; css: string; js: string }
+  ): Promise<string> {
+    const newTemplate = new this.templateModel({ name, description, previewImage, code });
+    const result = await newTemplate.save();
+    return result._id.toString();
+  }
 
-    getTemplates(): Template[] {
-        return [...this.templates];
-    }
+  async getTemplates(): Promise<Template[]> {
+    return this.templateModel.find().exec();
+  }
 
-    getTemplate(id: string): Template {
-        return this.getTemplateById(id)[0];
+  async getTemplate(id: string): Promise<Template> {
+    const template = await this.templateModel.findById(id).exec();
+    if (!template) {
+      throw new NotFoundException(`Template with id ${id} not found`);
     }
+    return template;
+  }
 
-    updateTemplate(
-        id: string, name: string, description: string, previewImage: string,
-        code: {html: string, css: string, js: string}
-    ): void {
-        const [targetTemplate, index] = this.getTemplateById(id);
-        const updatedTemplate = new Template(id, name, description, previewImage, code, targetTemplate.createdAt, new Date());
-        this.templates[index] = updatedTemplate;
-    }
+  async updateTemplate(
+    id: string, name: string, description: string, previewImage: string,
+    code: { html: string; css: string; js: string },
+  ): Promise<Template> {
+    const updateData: Partial<Template> = { name, description, previewImage, code };
+    updateData.updatedAt = new Date();
 
-    deleteTemplate(id: string): void {
-        const [, index] = this.getTemplateById(id);
-        this.templates.splice(index, 1);
+    const result = await this.templateModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();
+    if (!result) {
+      throw new NotFoundException(`Template with id ${id} not found`);
     }
+    return result;
+  }
 
-    private getTemplateById(id: string): [Template, number] {
-        const index = this.templates.findIndex(t => t.id === id);
-        return [this.templates[index], index];
+  async deleteTemplate(id: string): Promise<{ success: boolean; message?: string }> {
+    const result = await this.templateModel.deleteOne({ _id: id }).exec();
+    if (result.deletedCount === 0) {
+        return { success: false, message: `Template with id ${id} not found` };
     }
+    return { success: true, message: 'Template deleted successfully' };
+  }
 }

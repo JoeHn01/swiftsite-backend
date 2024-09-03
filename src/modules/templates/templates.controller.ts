@@ -6,28 +6,28 @@ export class TemplatesController {
     constructor(private readonly templatesService: TemplatesService) {}
 
     @Post()
-    addTemplate(
+    async addTemplate(
         @Body('name') name: string,
         @Body('description') description: string,
         @Body('previewImage') previewImage: string,
         @Body('code') code: {html: string, css: string, js: string},
     ) {
-        const templateId = this.templatesService.addTemplate(name, description, previewImage, code);
-        return { id: templateId };
+        const templateId = await this.templatesService.addTemplate(name, description, previewImage, code);
+        return { _id: templateId };
     }
 
     @Get()
-    getAllTemplates() {
+    async getAllTemplates() {
         return this.templatesService.getTemplates();
     }
 
     @Get(':templateId')
-    getTemplate(@Param('templateId') templateId: string) {
+    async getTemplate(@Param('templateId') templateId: string) {
         return this.templatesService.getTemplate(templateId);
     }
 
     @Put(':templateId')
-    updateTemplate(
+    async updateTemplate(
         @Param('templateId') templateId: string,
         @Body('name') name: string,
         @Body('description') description: string,
@@ -38,7 +38,7 @@ export class TemplatesController {
     }
 
     @Delete(':templateId')
-    deleteTemplate(@Param('templateId') templateId: string) {
-        this.templatesService.deleteTemplate(templateId);
+    async deleteTemplate(@Param('templateId') templateId: string) {
+        return this.templatesService.deleteTemplate(templateId);
     }
 }

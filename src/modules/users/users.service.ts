@@ -12,7 +12,7 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new this.userModel({ username, name, email, password: hashedPassword });
     const result = await newUser.save();
-    return result._id as string;
+    return result._id.toString();
   }
 
   async getUsers(): Promise<User[]> {
@@ -27,21 +27,23 @@ export class UsersService {
     return user;
   }
 
-  async updateUser(id: string, username: string, name: string, email: string, password: string): Promise<void> {
+  async updateUser(id: string, username: string, name: string, email: string, password: string): Promise<User> {
     const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
     const updateData: Partial<User> = { username, name, email, password: hashedPassword };
     updateData.updatedAt = new Date();
-
-    const result = await this.userModel.updateOne({ _id: id }, { $set: updateData }).exec();
-    if (result.matchedCount === 0) {
+  
+    const result = await this.userModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();
+    if (!result) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
+    return result;
   }
 
-  async deleteUser(id: string): Promise<void> {
+  async deleteUser(id: string): Promise<{ success: boolean; message?: string }> {
     const result = await this.userModel.deleteOne({ _id: id }).exec();
     if (result.deletedCount === 0) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      return { success: false, message: `User with id ${id} not found` };
     }
+    return { success: true, message: 'User deleted successfully' };
   }
 }

@@ -6,28 +6,28 @@ export class UsersController {
     constructor(private readonly userService: UsersService) {}
 
     @Post()
-    addUser(
+    async addUser(
         @Body('username') username: string,
         @Body('name') name: string,
         @Body('email') email: string,
         @Body('password') password: string,
     ) {
-        const userId = this.userService.addUser(username, name, email, password);
-        return { _id: userId }
+        const userId = await this.userService.addUser(username, name, email, password);
+        return { _id: userId };
     }
 
     @Get()
-    getAllUsers() {
+    async getAllUsers() {
         return this.userService.getUsers();
     }
 
     @Get(':userId')
-    getUser(@Param('userId') userId: string) {
+    async getUser(@Param('userId') userId: string) {
         return this.userService.getUser(userId);
     }
 
     @Put(':userId')
-    updateUser(
+    async updateUser(
         @Param('userId') userId: string,
         @Body('username') username: string,
         @Body('name') name: string,
@@ -38,7 +38,7 @@ export class UsersController {
     }
 
     @Delete(':userId')
-    deleteUser(@Param('userId') userId: string) {
-        this.userService.deleteUser(userId)
+    async deleteUser(@Param('userId') userId: string) {
+        return this.userService.deleteUser(userId);
     }
 }

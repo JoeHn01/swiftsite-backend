@@ -1,19 +1,33 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ObjectId, Schema } from 'mongoose';
 import { Template } from './templates.schema';
+import { User } from '../users/users.schema';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class TemplatesService {
-  constructor(@InjectModel(Template.name) private readonly templateModel: Model<Template>) {}
+  constructor(
+    @InjectModel(Template.name) private readonly templateModel: Model<Template>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+  ) {}
 
   async addTemplate(
-    name: string, description: string, previewImage: string, code: { html: string; css: string; js: string }
+    name: string, 
+    description: string, 
+    previewImage: string, 
+    code: { html: string; css: string; js: string }, 
+    userId: ObjectId
   ): Promise<string> {
-    const newTemplate = new this.templateModel({ name, description, previewImage, code });
+    const userExists = await this.userModel.exists({ _id: userId });
+    if (!userExists) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+  
+    const newTemplate = new this.templateModel({ name, description, previewImage, code, userId });
     const result = await newTemplate.save();
     return result._id.toString();
   }
+  
 
   async getTemplates(): Promise<Template[]> {
     return this.templateModel.find().exec();
@@ -28,15 +42,17 @@ export class TemplatesService {
   }
 
   async updateTemplate(
-    id: string, name: string, description: string, previewImage: string,
-    code: { html: string; css: string; js: string },
+    id: string, name: string, description: string, previewImage: string, code: { html: string; css: string; js: string; }, userId: string,
   ): Promise<Template> {
-    const updateData: Partial<Template> = { name, description, previewImage, code };
+    const updateData: Partial<Template> = { name, description, previewImage, code, userId };
     updateData.updatedAt = new Date();
-
     const result = await this.templateModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();
+    const userExists = await this.userModel.exists({ _id: userId });
     if (!result) {
       throw new NotFoundException(`Template with id ${id} not found`);
+    }
+    if (!userExists) {
+      throw new NotFoundException(`User with id ${userId} not found`);
     }
     return result;
   }

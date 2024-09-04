@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 
 @Schema()
 export class Template extends Document {
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   name: string;
 
   @Prop({ required: true })

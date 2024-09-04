@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { ObjectId } from 'mongodb';
 
 @Schema()
 export class User extends Document {
@@ -14,6 +15,9 @@ export class User extends Document {
 
   @Prop({ required: true })
   password: string;
+
+  @Prop({ type: ObjectId, ref: 'Template' })
+  templateIds: string[];
 
   @Prop({ default: Date.now })
   createdAt: Date;

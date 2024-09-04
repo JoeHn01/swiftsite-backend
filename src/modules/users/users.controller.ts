@@ -11,8 +11,9 @@ export class UsersController {
         @Body('name') name: string,
         @Body('email') email: string,
         @Body('password') password: string,
+        @Body('templateIds') templateIds: string[],
     ) {
-        const userId = await this.userService.addUser(username, name, email, password);
+        const userId = await this.userService.addUser(username, name, email, password, templateIds);
         return { _id: userId };
     }
 
@@ -33,8 +34,9 @@ export class UsersController {
         @Body('name') name: string,
         @Body('email') email: string,
         @Body('password') password: string,
+        @Body('templateIds') templateIds: string[],
     ) {
-        return this.userService.updateUser(userId, username, name, email, password);
+        return this.userService.updateUser(userId, username, name, email, password, templateIds);
     }
 
     @Delete(':userId')

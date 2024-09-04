@@ -6,35 +6,37 @@ export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService) {}
 
     @Post()
-    addCategory(
+    async addCategory(
         @Body('name') name: string,
-        @Body('description') description: string
+        @Body('description') description: string,
+        @Body('templateIds') templateIds: string[],
     ) {
-        const categoryId = this.categoriesService.addCategory(name, description);
-        return { id: categoryId };
+        const categoryId = await this.categoriesService.addCategory(name, description, templateIds);
+        return { _id: categoryId };
     }
 
     @Get()
-    getAllCategories() {
+    async getAllCategories() {
         return this.categoriesService.getCategories();
     }
 
     @Get(':categoryId')
-    getCategory(@Param('categoryId') categoryId: string) {
+    async getCategory(@Param('categoryId') categoryId: string) {
         return this.categoriesService.getCategory(categoryId);
     }
 
     @Put(':categoryId')
-    updateCategory(
+    async updateCategory(
         @Param('categoryId') categoryId: string,
         @Body('name') name: string,
-        @Body('description') description: string
+        @Body('description') description: string,
+        @Body('templateIds') templateIds: string[],
     ) {
-        this.categoriesService.updateCategory(categoryId, name, description);
+        return this.categoriesService.updateCategory(categoryId, name, description, templateIds);
     }
 
     @Delete(':categoryId')
-    deleteCategory(@Param('categoryId') categoryId: string) {
-        this.categoriesService.deleteCategory(categoryId);
+    async deleteCategory(@Param('categoryId') categoryId: string) {
+        return this.categoriesService.deleteCategory(categoryId);
     }
 }

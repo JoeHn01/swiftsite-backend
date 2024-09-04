@@ -6,8 +6,9 @@ import { TemplatesService } from './templates.service';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Template.name, schema: TemplateSchema }]),
-  UsersModule,
+  imports: [
+    MongooseModule.forFeature([{ name: Template.name, schema: TemplateSchema }]),
+    UsersModule,
   ],
   controllers: [TemplatesController],
   providers: [TemplatesService],

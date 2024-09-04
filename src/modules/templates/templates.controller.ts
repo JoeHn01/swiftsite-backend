@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
-import { ObjectId } from 'mongoose';
 
 @Controller('templates')
 export class TemplatesController {
@@ -12,7 +11,7 @@ export class TemplatesController {
         @Body('description') description: string,
         @Body('previewImage') previewImage: string,
         @Body('code') code: {html: string, css: string, js: string},
-        @Body('userId') userId: ObjectId,
+        @Body('userId') userId: string,
     ) {
         const templateId = await this.templatesService.addTemplate(name, description, previewImage, code, userId);
         return { _id: templateId };

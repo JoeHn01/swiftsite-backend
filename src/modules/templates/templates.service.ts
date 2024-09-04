@@ -1,8 +1,8 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId, Schema } from 'mongoose';
+import { Model, ObjectId, isValidObjectId } from 'mongoose';
 import { Template } from './templates.schema';
 import { User } from '../users/users.schema';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class TemplatesService {
@@ -11,23 +11,15 @@ export class TemplatesService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
   ) {}
 
-  async addTemplate(
-    name: string, 
-    description: string, 
-    previewImage: string, 
-    code: { html: string; css: string; js: string }, 
-    userId: ObjectId
-  ): Promise<string> {
-    const userExists = await this.userModel.exists({ _id: userId });
-    if (!userExists) {
-      throw new NotFoundException(`User with id ${userId} not found`);
-    }
+  async addTemplate(name: string, description: string, previewImage: string, 
+    code: { html: string; css: string; js: string }, userId: string): Promise<string> {
+    await this.validateUserId(userId, this.userModel);
   
     const newTemplate = new this.templateModel({ name, description, previewImage, code, userId });
+  
     const result = await newTemplate.save();
     return result._id.toString();
   }
-  
 
   async getTemplates(): Promise<Template[]> {
     return this.templateModel.find().exec();
@@ -42,17 +34,17 @@ export class TemplatesService {
   }
 
   async updateTemplate(
-    id: string, name: string, description: string, previewImage: string, code: { html: string; css: string; js: string; }, userId: string,
-  ): Promise<Template> {
+    id: string, name: string, description: string, previewImage: string,
+    code: { html: string; css: string; js: string; }, userId: string ): Promise<Template> {
+
+    await this.validateUserId(userId, this.userModel);
+  
     const updateData: Partial<Template> = { name, description, previewImage, code, userId };
     updateData.updatedAt = new Date();
+  
     const result = await this.templateModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();
-    const userExists = await this.userModel.exists({ _id: userId });
     if (!result) {
-      throw new NotFoundException(`Template with id ${id} not found`);
-    }
-    if (!userExists) {
-      throw new NotFoundException(`User with id ${userId} not found`);
+      throw new NotFoundException(`Template with ID ${id} not found`);
     }
     return result;
   }
@@ -63,5 +55,16 @@ export class TemplatesService {
         return { success: false, message: `Template with id ${id} not found` };
     }
     return { success: true, message: 'Template deleted successfully' };
+  }
+
+  private async validateUserId(userId: string, userModel: Model<any>) {
+    if (!isValidObjectId(userId)) {
+      throw new BadRequestException(`Invalid user ID: ${userId}`);
+    }
+  
+    const userExists = await userModel.exists({ _id: userId });
+    if (!userExists) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
   }
 }

@@ -1,21 +1,25 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId, isValidObjectId } from 'mongoose';
+import { Model, isValidObjectId } from 'mongoose';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Template } from './templates.schema';
 import { User } from '../users/users.schema';
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Category } from '../categories/categories.schema';
 
 @Injectable()
 export class TemplatesService {
   constructor(
     @InjectModel(Template.name) private readonly templateModel: Model<Template>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Category.name) private readonly categoryModel: Model<Category>,
   ) {}
 
   async addTemplate(name: string, description: string, previewImage: string, 
-    code: { html: string; css: string; js: string }, userId: string): Promise<string> {
+    code: { html: string; css: string; js: string }, categoryName: string, userId: string): Promise<string> {
+    
     await this.validateUserId(userId, this.userModel);
-  
-    const newTemplate = new this.templateModel({ name, description, previewImage, code, userId });
+    const categoryId = await this.validateOrCreateCategory(categoryName);
+
+    const newTemplate = new this.templateModel({ name, description, previewImage, code, categoryId, userId });
   
     const result = await newTemplate.save();
     return result._id.toString();
@@ -35,11 +39,12 @@ export class TemplatesService {
 
   async updateTemplate(
     id: string, name: string, description: string, previewImage: string,
-    code: { html: string; css: string; js: string; }, userId: string ): Promise<Template> {
+    code: { html: string; css: string; js: string; }, categoryName: string, userId: string ): Promise<Template> {
 
     await this.validateUserId(userId, this.userModel);
+    const categoryId = await this.validateOrCreateCategory(categoryName);
   
-    const updateData: Partial<Template> = { name, description, previewImage, code, userId };
+    const updateData: Partial<Template> = { name, description, previewImage, code, categoryId, userId };
     updateData.updatedAt = new Date();
   
     const result = await this.templateModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();
@@ -52,12 +57,12 @@ export class TemplatesService {
   async deleteTemplate(id: string): Promise<{ success: boolean; message?: string }> {
     const result = await this.templateModel.deleteOne({ _id: id }).exec();
     if (result.deletedCount === 0) {
-        return { success: false, message: `Template with id ${id} not found` };
+        return { success: false, message: `Category with id ${id} not found` };
     }
-    return { success: true, message: 'Template deleted successfully' };
+    return { success: true, message: 'Category deleted successfully' };
   }
 
-  private async validateUserId(userId: string, userModel: Model<any>) {
+  private async validateUserId(userId: string, userModel: Model<User>) {
     if (!isValidObjectId(userId)) {
       throw new BadRequestException(`Invalid user ID: ${userId}`);
     }
@@ -66,5 +71,22 @@ export class TemplatesService {
     if (!userExists) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
+  }
+
+  private async validateOrCreateCategory(categoryName: string): Promise<string> {
+    if (!categoryName || typeof categoryName !== 'string') {
+      throw new BadRequestException('Invalid category name');
+    }
+
+    let category = await this.categoryModel.findOne({ name: categoryName }).exec();
+    if (!category) {
+      category = new this.categoryModel({
+        name: categoryName,
+        description: `This is a templates category named ${categoryName}`,
+      });
+      await category.save();
+    }
+    
+    return category._id.toString();
   }
 }

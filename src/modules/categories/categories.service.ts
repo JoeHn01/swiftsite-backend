@@ -47,11 +47,12 @@ export class CategoriesService {
   }
   
    
-  async deleteCategory(id: string): Promise<void> {
+  async deleteCategory(id: string): Promise<{ success: boolean, message: string }> {
     const result = await this.categoryModel.deleteOne({ _id: id }).exec();
     if (result.deletedCount === 0) {
-      throw new NotFoundException(`Category with ID ${id} not found.`);
+        return { success: false, message: `Category with id ${id} not found` };
     }
+    return { success: true, message: 'Category deleted successfully' };
   }
 
   private async validateTemplateIds(templateIds: string[], templateModel: Model<any>) {

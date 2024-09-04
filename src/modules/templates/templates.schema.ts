@@ -16,6 +16,9 @@ export class Template extends Document {
   @Prop({ type: Object, required: true })
   code: { html: string; css: string; js: string };
 
+  @Prop({ type: ObjectId, ref: 'Category', required: true })
+  categoryId: string;
+
   @Prop({ type: ObjectId, ref: 'User', required: true })
   userId: string;
 

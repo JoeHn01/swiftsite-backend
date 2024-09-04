@@ -11,9 +11,10 @@ export class TemplatesController {
         @Body('description') description: string,
         @Body('previewImage') previewImage: string,
         @Body('code') code: {html: string, css: string, js: string},
+        @Body('categoryName') categoryName: string,
         @Body('userId') userId: string,
     ) {
-        const templateId = await this.templatesService.addTemplate(name, description, previewImage, code, userId);
+        const templateId = await this.templatesService.addTemplate(name, description, previewImage, code, categoryName, userId);
         return { _id: templateId };
     }
 
@@ -34,9 +35,10 @@ export class TemplatesController {
         @Body('description') description: string,
         @Body('previewImage') previewImage: string,
         @Body('code') code: {html: string, css: string, js: string},
+        @Body('categoryName') categoryName: string,
         @Body('userId') userId: string,
     ) {
-        return this.templatesService.updateTemplate(templateId, name, description, previewImage, code, userId);
+        return this.templatesService.updateTemplate(templateId, name, description, previewImage, code, categoryName, userId);
     }
 
     @Delete(':templateId')

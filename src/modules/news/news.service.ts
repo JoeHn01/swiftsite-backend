@@ -1,16 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 import { News } from './news.schema';
+import { User } from '../users/users.schema';
 
 @Injectable()
 export class NewsService {
   constructor(
     @InjectModel(News.name) private readonly newsModel: Model<News>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
   ) {}
 
-  async addNews(title: string, content: string, category: string): Promise<string> {
-    const newNews = new this.newsModel({ title, content, category });
+  async addNews(title: string, content: string, category: string, authorId: string): Promise<string> {
+    await this.validateUserId(authorId, this.userModel);
+
+    const newNews = new this.newsModel({ title, content, category, authorId });
     const result = await newNews.save();
     return result._id.toString();
   }
@@ -27,8 +31,10 @@ export class NewsService {
     return news;
   }
 
-  async updateNews(id: string, title: string, content: string, category: string): Promise<News> {
-    const updateData: Partial<News> = { title, content, category };
+  async updateNews(id: string, title: string, content: string, category: string, authorId: string): Promise<News> {
+    await this.validateUserId(authorId, this.userModel);
+
+    const updateData: Partial<News> = { title, content, category, authorId };
     updateData.updatedAt = new Date();
 
     const result = await this.newsModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();
@@ -44,5 +50,16 @@ export class NewsService {
         return { success: false, message: `News item with ID ${id} not found` };
     }
     return { success: true, message: 'News item deleted successfully' };
+  }
+
+  private async validateUserId(userId: string, userModel: Model<User>) {
+    if (!isValidObjectId(userId)) {
+      throw new BadRequestException(`Invalid user ID: ${userId}`);
+    }
+  
+    const userExists = await userModel.exists({ _id: userId });
+    if (!userExists) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
   }
 }

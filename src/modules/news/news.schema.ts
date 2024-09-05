@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-// import { User } from '../users/users.schema';
+import { ObjectId } from 'mongodb';
 
 @Schema()
 export class News extends Document {
@@ -10,8 +10,8 @@ export class News extends Document {
   @Prop({ required: true })
   content: string;
 
-  // @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
-  // author: User;
+  @Prop({ type: ObjectId, ref: 'User', required: true })
+  authorId: string;
 
   @Prop({ required: true })
   category: string;

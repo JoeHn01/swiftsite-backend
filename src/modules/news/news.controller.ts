@@ -10,8 +10,9 @@ export class NewsController {
         @Body('title') title: string,
         @Body('content') content: string,
         @Body('category') category: string,
+        @Body('authorId') authorId: string,
     ) {
-        const newsId = await this.newsService.addNews(title, content, category);
+        const newsId = await this.newsService.addNews(title, content, category, authorId);
         return { _id: newsId };
     }
 
@@ -31,8 +32,9 @@ export class NewsController {
         @Body('title') title: string,
         @Body('content') content: string,
         @Body('category') category: string,
+        @Body('authorId') authorId: string,
     ) {
-        return this.newsService.updateNews(newsId, title, content, category);
+        return this.newsService.updateNews(newsId, title, content, category, authorId);
     }
 
     @Delete(':newsId')

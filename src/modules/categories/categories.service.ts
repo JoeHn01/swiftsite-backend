@@ -12,12 +12,13 @@ export class CategoriesService {
   ) {}
 
   async addCategory(name: string, description: string, templateIds: string[],
-  ): Promise<Category> {
+  ): Promise<string> {
 
     await this.validateTemplateIds(templateIds, this.templateModel);
   
     const newCategory = new this.categoryModel({ name, description, templateIds });
-    return newCategory.save();
+    const result = await newCategory.save();
+    return result._id.toString();
   }
   
   async getCategories(): Promise<Category[]> {

@@ -28,6 +28,16 @@ export class TemplatesService {
   async getTemplates(): Promise<Template[]> {
     return this.templateModel.find().exec();
   }
+  
+  async searchTemplates(query: string): Promise<Template[]> {
+    const searchRegex = new RegExp(query, 'i');
+    return await this.templateModel.find({
+      $or: [
+        { name: { $regex: searchRegex } },
+        { description: { $regex: searchRegex } },
+      ]
+    }).exec();
+  }  
 
   async getTemplate(id: string): Promise<Template> {
     const template = await this.templateModel.findById(id).exec();

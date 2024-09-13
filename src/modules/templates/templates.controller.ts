@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 
 @Controller('templates')
@@ -21,6 +21,11 @@ export class TemplatesController {
     @Get()
     async getAllTemplates() {
         return this.templatesService.getTemplates();
+    }
+    
+    @Get('search')
+    async searchTemplates(@Query('q') query: string) {
+      return this.templatesService.searchTemplates(query);
     }
 
     @Get(':templateId')

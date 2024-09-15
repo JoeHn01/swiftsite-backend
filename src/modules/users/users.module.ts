@@ -12,5 +12,6 @@ import { Template, TemplateSchema } from '../templates/templates.schema';
   ],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [MongooseModule],
 })
 export class UsersModule {}

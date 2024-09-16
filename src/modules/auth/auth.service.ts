@@ -10,6 +10,13 @@ export class AuthPayloadDto {
   password: string;
 }
 
+export class SignupPayloadDto {
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -31,6 +38,6 @@ export class AuthService {
     if (user) {
       return this.jwtService.sign(user);
     }
-    return "Invalid Credentials";
+    return null;
   }
 }

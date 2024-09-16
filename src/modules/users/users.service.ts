@@ -12,7 +12,7 @@ export class UsersService {
     @InjectModel(Template.name) private readonly templateModel: Model<Template>,
 ) {}
 
-  async addUser(username: string, name: string, email: string, password: string, templateIds): Promise<string> {
+  async addUser(username: string, name: string, email: string, password: string, templateIds?: string[]): Promise<string> {
     await this.validateTemplateIds(templateIds, this.templateModel);
 
     const hashedPassword = await bcrypt.hash(password, 10);

@@ -5,7 +5,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { UsersModule } from '../users/users.module';
 import { LocalGuard } from './guards/local.guard';
 import { AuthController } from './auth.controller';
-import * as dotenv from "dotenv";
+import * as dotenv from 'dotenv';
 
 dotenv.config();
 

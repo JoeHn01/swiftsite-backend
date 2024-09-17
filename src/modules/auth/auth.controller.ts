@@ -1,6 +1,7 @@
 import { Body, Controller, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { AuthService, AuthPayloadDto, SignupPayloadDto } from './auth.service';
+import { SigninPayloadDto, SignupPayloadDto } from './dto/auth.dto';
 import { LocalGuard } from './guards/local.guard';
+import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 
 @Controller('auth')
@@ -10,10 +11,10 @@ export class AuthController {
     private usersService: UsersService,
   ) {}
 
-  @Post('login')
   @UseGuards(LocalGuard)
-  async login(@Body() authPayload: AuthPayloadDto) {
-    const token = await this.authService.login(authPayload);
+  @Post('login')
+  async login(@Body() signinPayload: SigninPayloadDto) {
+    const token = await this.authService.login(signinPayload);
     if (token === null) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -25,9 +26,9 @@ export class AuthController {
     const { username, name, email, password } = signupPayload;
     const newUser = await this.usersService.addUser(username, name, email, password);
     if (newUser){
-      const userToken = await this.authService.login({ username, password });
-      if (userToken === null) throw new UnauthorizedException('');
-      return { userToken: userToken }
+      const token = await this.authService.login({ username, password });
+      if (token === null) throw new UnauthorizedException('');
+      return { userToken: token };
     }
   }
 }

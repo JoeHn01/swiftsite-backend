@@ -1,8 +1,7 @@
-// auth.controller.ts
 import { Body, Controller, Get, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { SigninPayloadDto, SignupPayloadDto } from './dto/auth.dto';
 import { LocalGuard } from './guards/local.guard';
-import { JwtAuthGuard } from './guards/jwt.guard';  // Import JwtAuthGuard
+import { JwtAuthGuard } from './guards/jwt.guard';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/users.schema';
@@ -39,10 +38,19 @@ export class AuthController {
       return { userToken: token };
     }
   }
-
+  
   @UseGuards(JwtAuthGuard)
   @Get('status')
-  status(@Req() req: RequestWithUser) {
+  tokenStatus(@Req() req: RequestWithUser) {
     return req.user;
+  }
+  
+  @Post('refresh-token')
+  async refreshToken(@Body('accessToken') accessToken: string) {
+    if (!accessToken) {
+      throw new UnauthorizedException('Access token is required');
+    }
+    const newAccessToken = await this.authService.refreshToken(accessToken);
+    return { accessToken: newAccessToken };
   }
 }

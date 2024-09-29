@@ -14,12 +14,12 @@ export class TemplatesService {
   ) {}
 
   async addTemplate(name: string, description: string, previewImage: string, 
-    code: { html: string; css: string; js: string }, categoryName: string, userId: string): Promise<string> {
+    code: { html: string; css: string; js: string }, categoryName: string, userId: string, featured: Boolean): Promise<string> {
     
     await this.validateUserId(userId, this.userModel);
     const categoryId = await this.validateOrCreateCategory(categoryName);
 
-    const newTemplate = new this.templateModel({ name, description, previewImage, code, categoryId, userId });
+    const newTemplate = new this.templateModel({ name, description, previewImage, code, categoryId, userId, featured });
   
     const result = await newTemplate.save();
     return result._id.toString();
@@ -37,6 +37,14 @@ export class TemplatesService {
         { description: { $regex: searchRegex } },
       ]
     }).exec();
+  }
+
+  async getFeaturedTemplates(): Promise<Template[]> {
+    const featuredTemplates = await this.templateModel.find({ featured: true }).exec();
+    if (!featuredTemplates || featuredTemplates.length === 0) {
+      throw new NotFoundException('No featured templates found');
+    }
+    return featuredTemplates;
   }  
 
   async getTemplate(id: string): Promise<Template> {
@@ -49,12 +57,12 @@ export class TemplatesService {
 
   async updateTemplate(
     id: string, name: string, description: string, previewImage: string,
-    code: { html: string; css: string; js: string; }, categoryName: string, userId: string ): Promise<Template> {
+    code: { html: string; css: string; js: string; }, categoryName: string, userId: string, featured: Boolean ): Promise<Template> {
 
     await this.validateUserId(userId, this.userModel);
     const categoryId = await this.validateOrCreateCategory(categoryName);
   
-    const updateData: Partial<Template> = { name, description, previewImage, code, categoryId, userId };
+    const updateData: Partial<Template> = { name, description, previewImage, code, categoryId, userId, featured };
     updateData.updatedAt = new Date();
   
     const result = await this.templateModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();
@@ -74,7 +82,7 @@ export class TemplatesService {
 
   private async validateUserId(userId: string, userModel: Model<User>) {
     if (!isValidObjectId(userId)) {
-      throw new BadRequestException(`Invalid user ID: ${userId}`);
+      throw new BadRequestException(`Invalid Template ID: ${userId}`);
     }
   
     const userExists = await userModel.exists({ _id: userId });

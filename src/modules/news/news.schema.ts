@@ -16,6 +16,9 @@ export class News extends Document {
   @Prop({ required: true })
   category: string;
 
+  @Prop()
+  featured: Boolean;
+
   @Prop({ type: Date })
   createdAt: Date;
 

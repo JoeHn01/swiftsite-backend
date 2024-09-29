@@ -22,6 +22,9 @@ export class Template extends Document {
   @Prop({ type: ObjectId, ref: 'User', required: true })
   userId: string;
 
+  @Prop()
+  featured: Boolean;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 

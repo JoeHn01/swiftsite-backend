@@ -11,10 +11,10 @@ export class NewsService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
   ) {}
 
-  async addNews(title: string, content: string, category: string, authorId: string): Promise<string> {
+  async addNews(title: string, content: string, category: string, authorId: string, featured: Boolean): Promise<string> {
     await this.validateUserId(authorId, this.userModel);
 
-    const newNews = new this.newsModel({ title, content, category, authorId });
+    const newNews = new this.newsModel({ title, content, category, authorId, featured });
     const result = await newNews.save();
     return result._id.toString();
   }
@@ -22,6 +22,14 @@ export class NewsService {
   async getAllNews(): Promise<News[]> {
     return await this.newsModel.find().exec();
   }
+
+  async getFeaturedNews(): Promise<News[]> {
+    const featuredNews = await this.newsModel.find({ featured: true }).exec();
+    if (!featuredNews || featuredNews.length === 0) {
+      throw new NotFoundException('No featured news found');
+    }
+    return featuredNews;
+  }  
 
   async getNews(id: string): Promise<News> {
     const news = await this.newsModel.findById(id).exec();
@@ -31,10 +39,10 @@ export class NewsService {
     return news;
   }
 
-  async updateNews(id: string, title: string, content: string, category: string, authorId: string): Promise<News> {
+  async updateNews(id: string, title: string, content: string, category: string, authorId: string, featured: Boolean): Promise<News> {
     await this.validateUserId(authorId, this.userModel);
 
-    const updateData: Partial<News> = { title, content, category, authorId };
+    const updateData: Partial<News> = { title, content, category, authorId, featured };
     updateData.updatedAt = new Date();
 
     const result = await this.newsModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();

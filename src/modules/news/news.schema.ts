@@ -19,10 +19,10 @@ export class News extends Document {
   @Prop()
   featured: Boolean;
 
-  @Prop({ type: Date })
+  @Prop({ default: Date.now })
   createdAt: Date;
 
-  @Prop({ type: Date })
+  @Prop({ default: Date.now })
   updatedAt: Date;
 }
 

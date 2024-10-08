@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UnauthorizedException, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { SigninPayloadDto, SignupPayloadDto } from './dto/auth.dto';
 import { LocalGuard } from './guards/local.guard';
 import { JwtAuthGuard } from './guards/jwt.guard';
@@ -21,36 +21,57 @@ export class AuthController {
   @UseGuards(LocalGuard)
   @Post('login')
   async login(@Body() signinPayload: SigninPayloadDto) {
-    const token = await this.authService.login(signinPayload);
-    if (token === null) {
-      throw new UnauthorizedException('Invalid credentials');
+    try {
+      const token = await this.authService.login(signinPayload);
+      if (token === null) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+      return { userToken: token };
+    } catch (error) {
+      throw new HttpException(error.message || 'Failed to login', HttpStatus.UNAUTHORIZED);
     }
-    return { userToken: token };
   }
 
   @Post('signup')
   async signup(@Body() signupPayload: SignupPayloadDto) {
-    const { username, name, email, password } = signupPayload;
-    const newUser = await this.usersService.addUser(username, name, email, password);
-    if (newUser) {
-      const token = await this.authService.login({ username, password });
-      if (token === null) throw new UnauthorizedException('Invalid credentials');
-      return { userToken: token };
+    try {
+      const { username, name, email, password } = signupPayload;
+      const newUser = await this.usersService.addUser(username, name, email, password);
+      if (newUser) {
+        const token = await this.authService.login({ username, password });
+        if (token === null) {
+          throw new UnauthorizedException('Invalid credentials');
+        }
+        return { userToken: token };
+      }
+    } catch (error) {
+      throw new HttpException(error.message || 'Failed to signup', HttpStatus.BAD_REQUEST);
     }
   }
-  
+
   @UseGuards(JwtAuthGuard)
   @Get('status')
   tokenStatus(@Req() req: RequestWithUser) {
-    return req.user;
+    try {
+      return req.user;
+    } catch (error) {
+      throw new HttpException('Failed to retrieve user status', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
-  
+
   @Post('refresh-token')
   async refreshToken(@Body('accessToken') accessToken: string) {
-    if (!accessToken) {
-      throw new UnauthorizedException('Access token is required');
+    try {
+      if (!accessToken) {
+        throw new UnauthorizedException('Access token is required');
+      }
+      const newAccessToken = await this.authService.refreshToken(accessToken);
+      if (!newAccessToken) {
+        throw new UnauthorizedException('Invalid access token');
+      }
+      return { accessToken: newAccessToken };
+    } catch (error) {
+      throw new HttpException(error.message || 'Failed to refresh token', HttpStatus.UNAUTHORIZED);
     }
-    const newAccessToken = await this.authService.refreshToken(accessToken);
-    return { accessToken: newAccessToken };
   }
 }

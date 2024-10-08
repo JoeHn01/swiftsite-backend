@@ -60,14 +60,14 @@ export class UsersService {
     if (templateIds && templateIds.length > 0) {
       const invalidIds = templateIds.filter(id => !isValidObjectId(id));
       if (invalidIds.length > 0) {
-        throw new BadRequestException(`Invalid template IDs: ${invalidIds.join(', ')}`);
+        throw new BadRequestException(`Invalid template ids: ${invalidIds.join(', ')}`);
       }
   
       // Check if all templateIds exist in the templates collection
       const templatesExist = await templateModel.countDocuments({ _id: { $in: templateIds } }).exec();
   
       if (templatesExist !== templateIds.length) {
-        throw new NotFoundException(`One or more templates with IDs ${templateIds} not found`);
+        throw new NotFoundException(`One or more templates with ids ${templateIds} not found`);
       }
     }
   }

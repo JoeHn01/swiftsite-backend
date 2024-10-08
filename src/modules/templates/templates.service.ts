@@ -67,7 +67,7 @@ export class TemplatesService {
   
     const result = await this.templateModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();
     if (!result) {
-      throw new NotFoundException(`Template with ID ${id} not found`);
+      throw new NotFoundException(`Template with id ${id} not found`);
     }
     return result;
   }
@@ -82,12 +82,12 @@ export class TemplatesService {
 
   private async validateUserId(userId: string, userModel: Model<User>) {
     if (!isValidObjectId(userId)) {
-      throw new BadRequestException(`Invalid Template ID: ${userId}`);
+      throw new BadRequestException(`Invalid Template id: ${userId}`);
     }
   
     const userExists = await userModel.exists({ _id: userId });
     if (!userExists) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+      throw new NotFoundException(`User with is ${userId} not found`);
     }
   }
 

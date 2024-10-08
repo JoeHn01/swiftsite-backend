@@ -34,7 +34,7 @@ export class NewsService {
   async getNews(id: string): Promise<News> {
     const news = await this.newsModel.findById(id).exec();
     if (!news) {
-        throw new NotFoundException(`News item with ID ${id} not found`);
+        throw new NotFoundException(`News item with id ${id} not found`);
     }
     return news;
   }
@@ -47,7 +47,7 @@ export class NewsService {
 
     const result = await this.newsModel.findOneAndUpdate({ _id: id }, { $set: updateData }, { new: true }).exec();
     if (!result) {
-      throw new NotFoundException(`News item with ID ${id} not found`);
+      throw new NotFoundException(`News item with id ${id} not found`);
     }
     return result;
   }
@@ -55,19 +55,19 @@ export class NewsService {
   async deleteNews(id: string): Promise<{ success: boolean, message: string }> {
     const result = await this.newsModel.deleteOne({ _id: id }).exec();
     if (result.deletedCount === 0) {
-        return { success: false, message: `News item with ID ${id} not found` };
+        return { success: false, message: `News item with id ${id} not found` };
     }
     return { success: true, message: 'News item deleted successfully' };
   }
 
   private async validateUserId(userId: string, userModel: Model<User>) {
     if (!isValidObjectId(userId)) {
-      throw new BadRequestException(`Invalid user ID: ${userId}`);
+      throw new BadRequestException(`Invalid user id: ${userId}`);
     }
   
     const userExists = await userModel.exists({ _id: userId });
     if (!userExists) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+      throw new NotFoundException(`User with id ${userId} not found`);
     }
   }
 }

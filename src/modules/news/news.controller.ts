@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, HttpException, HttpStatus } from "@nestjs/common";
 import { NewsService } from "./news.service";
 import { News } from "./news.schema";
 
@@ -12,25 +12,45 @@ export class NewsController {
         @Body('content') content: string,
         @Body('category') category: string,
         @Body('authorId') authorId: string,
-        @Body('featured') featured: Boolean
+        @Body('featured') featured: boolean
     ) {
-        const newsId = await this.newsService.addNews(title, content, category, authorId, featured);
-        return { _id: newsId };
+        try {
+            const newsId = await this.newsService.addNews(title, content, category, authorId, featured);
+            return { _id: newsId };
+        } catch (error) {
+            throw new HttpException(error.message || 'Failed to add news', HttpStatus.BAD_REQUEST);
+        }
     }
 
     @Get()
     async getAllNews() {
-        return this.newsService.getAllNews();
+        try {
+            return await this.newsService.getAllNews();
+        } catch (error) {
+            throw new HttpException(error.message || 'Failed to retrieve news', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Get('featured')
     async getFeaturedNews(): Promise<News[]> {
-      return this.newsService.getFeaturedNews();
+        try {
+            return await this.newsService.getFeaturedNews();
+        } catch (error) {
+            throw new HttpException(error.message || 'Failed to retrieve featured news', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Get(':newsId')
     async getNews(@Param('newsId') newsId: string) {
-        return this.newsService.getNews(newsId);
+        try {
+            const news = await this.newsService.getNews(newsId);
+            if (!news) {
+                throw new HttpException('News item not found', HttpStatus.NOT_FOUND);
+            }
+            return news;
+        } catch (error) {
+            throw new HttpException(error.message || 'Failed to retrieve news item', HttpStatus.BAD_REQUEST);
+        }
     }
 
     @Put(':newsId')
@@ -40,13 +60,31 @@ export class NewsController {
         @Body('content') content: string,
         @Body('category') category: string,
         @Body('authorId') authorId: string,
-        @Body('featured') featured: Boolean,
+        @Body('featured') featured: boolean,
     ) {
-        return this.newsService.updateNews(newsId, title, content, category, authorId, featured);
+        try {
+            const updatedNews = await this.newsService.updateNews(newsId, title, content, category, authorId, featured);
+            if (!updatedNews) {
+                throw new HttpException('News item not found for update', HttpStatus.NOT_FOUND);
+            }
+            return updatedNews;
+        } catch (error) {
+            throw new HttpException(error.message || 'Failed to update news item', HttpStatus.BAD_REQUEST);
+        }
     }
 
     @Delete(':newsId')
     async deleteNews(@Param('newsId') newsId: string) {
-        return this.newsService.deleteNews(newsId);
+        try {
+            const newsExists = await this.newsService.getNews(newsId);
+            if (!newsExists) {
+                throw new HttpException('News item not found', HttpStatus.NOT_FOUND);
+            }
+
+            await this.newsService.deleteNews(newsId);
+            return { message: 'News item deleted successfully' };
+        } catch (error) {
+            throw new HttpException(error.message || 'Failed to delete news item', HttpStatus.BAD_REQUEST);
+        }
     }
 }
